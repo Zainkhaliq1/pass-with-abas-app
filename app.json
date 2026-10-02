@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Pass With Abas",
+    "slug": "pass-with-abas",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#1C2430"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.passwithabas.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1C2430"
+      },
+      "package": "com.passwithabas.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
