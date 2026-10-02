@@ -1,14 +1,16 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { colors, spacing, type } from '../theme/colors';
-import { INSTRUCTORS } from '../data/mockData';
+import { useBookings } from '../context/BookingContext';
+import { colorForInstructor } from '../data/constants';
 import InstructorCard from '../components/InstructorCard';
 
 export default function InstructorsScreen({ navigation }) {
+  const { instructors } = useBookings();
   return (
     <View style={styles.screen}>
       <FlatList
-        data={INSTRUCTORS}
+        data={instructors}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: spacing.lg }}
         ListHeaderComponent={
@@ -17,9 +19,15 @@ export default function InstructorsScreen({ navigation }) {
             <Text style={type.bodyMuted}>Tap an instructor to see their availability.</Text>
           </View>
         }
+        ListEmptyComponent={<Text style={type.bodyMuted}>No instructors yet — check back soon.</Text>}
         renderItem={({ item }) => (
           <InstructorCard
-            instructor={item}
+            instructor={{
+              ...item,
+              title: item.name === 'Abas' ? 'Founder & Lead Instructor' : 'Instructor',
+              years: item.years_experience,
+              color: colorForInstructor(item.id),
+            }}
             onPress={() => navigation.navigate('Book', { instructorId: item.id })}
           />
         )}

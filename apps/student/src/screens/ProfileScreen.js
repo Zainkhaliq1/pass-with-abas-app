@@ -1,9 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Linking, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Linking, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing, type } from '../theme/colors';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProfileScreen() {
+  const { profile, session, signOut } = useAuth();
+
+  function handleSignOut() {
+    Alert.alert('Sign out?', 'You can sign back in any time.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: signOut },
+    ]);
+  }
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={{ padding: spacing.lg, paddingTop: 64 }}>
       <Text style={styles.wordmark}>
@@ -14,9 +24,21 @@ export default function ProfileScreen() {
         Driving lessons that build real confidence.
       </Text>
 
-      <InfoRow icon="call" label="Phone" value="07792 390777" onPress={() => Linking.openURL('tel:07792390777')} />
-      <InfoRow icon="mail" label="Email" value="passwithabas@live.co.uk" onPress={() => Linking.openURL('mailto:passwithabas@live.co.uk')} />
-      <InfoRow icon="location" label="Address" value="76 Northgate, Wakefield" />
+      <Text style={type.label}>Your details</Text>
+      <View style={{ marginTop: spacing.sm, marginBottom: spacing.lg }}>
+        <InfoRow icon="person" label="Name" value={profile?.name || '—'} />
+        <InfoRow icon="mail" label="Email" value={session?.user?.email || '—'} />
+        {!!profile?.phone && <InfoRow icon="call" label="Phone" value={profile.phone} />}
+        {!!profile?.address && <InfoRow icon="location" label="Address" value={profile.address} />}
+        {!!profile?.experience && <InfoRow icon="speedometer" label="Experience" value={profile.experience} />}
+      </View>
+
+      <Text style={type.label}>Pass With Abas</Text>
+      <View style={{ marginTop: spacing.sm }}>
+        <InfoRow icon="call" label="Phone" value="07792 390777" onPress={() => Linking.openURL('tel:07792390777')} />
+        <InfoRow icon="mail" label="Email" value="passwithabas@live.co.uk" onPress={() => Linking.openURL('mailto:passwithabas@live.co.uk')} />
+        <InfoRow icon="location" label="Address" value="76 Northgate, Wakefield" />
+      </View>
 
       <View style={styles.section}>
         <Text style={type.h1}>Settings</Text>
@@ -27,6 +49,10 @@ export default function ProfileScreen() {
           <SettingsRow label="Terms & privacy" />
         </View>
       </View>
+
+      <Pressable style={styles.signOut} onPress={handleSignOut}>
+        <Text style={styles.signOutText}>Sign out</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -74,4 +100,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border,
   },
+  signOut: { marginTop: spacing.xl, alignItems: 'center', paddingVertical: spacing.md },
+  signOutText: { color: colors.danger, fontWeight: '700', fontSize: 15 },
 });

@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Pass With Abas Staff",
+    "slug": "pass-with-abas-instructor",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#0E1210"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.passwithabas.staff"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0E1210"
+      },
+      "package": "com.passwithabas.staff"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

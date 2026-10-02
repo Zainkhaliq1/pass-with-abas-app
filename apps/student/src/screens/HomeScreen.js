@@ -3,11 +3,22 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing, type } from '../theme/colors';
 import { useBookings } from '../context/BookingContext';
+import { useAuth } from '../context/AuthContext';
 import LessonCard from '../components/LessonCard';
 
 export default function HomeScreen({ navigation }) {
   const { bookings } = useBookings();
-  const nextLesson = bookings[bookings.length - 1] || bookings[0];
+  const { profile } = useAuth();
+  const nextLesson = bookings[0]
+    ? {
+        id: bookings[0].id,
+        lessonLabel: bookings[0].lesson_types?.label ?? 'Lesson',
+        instructorName: bookings[0].instructors?.name ?? 'Instructor',
+        date: bookings[0].availability_slots?.date,
+        time: bookings[0].availability_slots?.time,
+        price: bookings[0].price,
+      }
+    : null;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: spacing.xl }}>
@@ -17,7 +28,9 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.wordmarkGreen}>Abas</Text>
         </Text>
         <Text style={styles.heroKicker}>Driving School · Wakefield</Text>
-        <Text style={styles.heroTitle}>Master the road{'\n'}with confidence.</Text>
+        <Text style={styles.heroTitle}>
+          {profile?.name ? `Welcome back, ${profile.name.split(' ')[0]}.` : 'Master the road\nwith confidence.'}
+        </Text>
         <Text style={styles.heroSub}>
           19 years teaching learners in and around Wakefield. Book a lesson in under a minute.
         </Text>
@@ -36,11 +49,11 @@ export default function HomeScreen({ navigation }) {
         <Stat number="50k+" label="Lessons delivered" />
       </View>
 
-      {bookings.length > 0 && (
+      {nextLesson && (
         <View style={styles.section}>
           <Text style={type.h1}>Your next lesson</Text>
           <View style={{ marginTop: spacing.md }}>
-            <LessonCard booking={bookings[0]} />
+            <LessonCard booking={nextLesson} />
           </View>
         </View>
       )}

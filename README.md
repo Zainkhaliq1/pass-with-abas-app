@@ -1,60 +1,40 @@
-# Pass With Abas — Driving School App
+# Pass With Abas
 
-A cross-platform (iPhone + Android) booking app built with **Expo** and React Native.
+Two apps sharing one live backend, for the real driving school in Wakefield.
 
-## What it does
-- **Home** — hero intro, next upcoming lesson, quick "Book a lesson" CTA
-- **Instructors** — browse instructors with ratings, specialties, transmission type
-- **Book** — 4-step flow: pick instructor → pick lesson type → pick date/time → confirm
-- **My Lessons** — view and cancel upcoming bookings (persisted on-device)
-- **Profile** — school contact info and settings
+- **apps/student** — pupils sign up, browse instructors, and book real
+  available lesson slots.
+- **apps/instructor** — staff sign in, open up their own availability, see
+  who's booked in, and view pupil contact details.
+- **supabase/** — the shared database (schema + seed data) both apps talk to.
+  See `supabase/README.md` for one-time setup.
 
-Bookings are stored locally on the device with `AsyncStorage`, so they persist between
-app launches. Availability and instructors are mock data in `src/data/mockData.js` —
-swap that file for real API calls once you have a backend.
+Both apps are plain Expo (React Native) projects — run with Expo Go on
+iPhone or Android.
 
-## Run it (both iPhone and Android)
+## Running either app
 
-1. Install [Node.js](https://nodejs.org) (LTS) if you don't have it.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the dev server:
-   ```bash
-   npx expo start
-   ```
-4. On your phone, install the **Expo Go** app (App Store / Google Play).
-5. Scan the QR code shown in the terminal / browser with:
-   - **iPhone**: the Camera app (it will prompt to open in Expo Go)
-   - **Android**: the Expo Go app's built-in scanner
-
-The app will load directly on your phone — no App Store submission needed for testing.
-
-## Building real installable apps later
-When you're ready to publish to the App Store / Google Play, use
-[EAS Build](https://docs.expo.dev/build/introduction/):
 ```bash
-npm install -g eas-cli
-eas build --platform ios
-eas build --platform android
+cd apps/student      # or apps/instructor
+npm install
+npx expo start
 ```
 
-## Project structure
-```
-App.js                      Root component
-src/
-  theme/colors.js           Design tokens (colors, spacing, type)
-  data/mockData.js          Instructors + generated availability (replace with API)
-  context/BookingContext.js Booking state + AsyncStorage persistence
-  navigation/AppNavigator.js Bottom tab navigation
-  screens/                  Home, Instructors, Book, MyLessons, Profile
-  components/               PrimaryButton, InstructorCard, LessonCard
-```
+Scan the QR code with Expo Go (iPhone: use the Camera app; Android: use the
+scanner inside Expo Go).
 
-## Next steps to make this production-ready
-- Replace mock data with a real backend (e.g. a small API + database) so instructors,
-  availability, and bookings sync across devices instead of living only on-device.
-- Add authentication (sign up / log in) so bookings are tied to a real student account.
-- Add push notifications for lesson reminders (`expo-notifications`).
-- Add payment collection at booking time (e.g. Stripe).
+## How they connect
+
+Both apps use [Supabase](https://supabase.com) for the database, sign-in, and
+real-time updates — a pupil booking a slot instantly disappears from every
+other pupil's list, and shows up on the instructor's dashboard straight away.
+
+The connection details are in each app's `src/lib/supabaseClient.js`. See
+`supabase/README.md` for how the two apps and the database fit together, and
+how to safely let new instructors sign up.
+
+## Making changes going forward
+
+This project lives on GitHub, so any future change — a new lesson type, a
+design tweak, a new screen — can be made by editing these files and pushing.
+Nothing is ever only "in a conversation" anymore.

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing, type } from '../theme/colors';
-import { INSTRUCTORS, LESSON_TYPES, CANCELLATION_POLICY } from '../data/mockData';
+import { CANCELLATION_POLICY, colorForInstructor } from '../data/constants';
 import { useBookings } from '../context/BookingContext';
 import InstructorCard from '../components/InstructorCard';
 import PrimaryButton from '../components/PrimaryButton';
@@ -16,21 +16,22 @@ function formatDate(dateStr) {
 
 export default function BookLessonScreen({ route, navigation }) {
   const presetInstructorId = route.params?.instructorId;
-  const { availability, bookSlot } = useBookings();
+  const { instructors, lessonTypes, availability, bookSlot } = useBookings();
 
   const [step, setStep] = useState(presetInstructorId ? 1 : 0);
   const [instructorId, setInstructorId] = useState(presetInstructorId || null);
   const [lessonTypeId, setLessonTypeId] = useState(null);
   const [selectedSlotId, setSelectedSlotId] = useState(null);
+  const [booking, setBooking] = useState(false);
 
-  const instructor = INSTRUCTORS.find((i) => i.id === instructorId);
-  const lessonType = LESSON_TYPES.find((l) => l.id === lessonTypeId);
+  const instructor = instructors.find((i) => i.id === instructorId);
+  const lessonType = lessonTypes.find((l) => l.id === lessonTypeId);
 
   const slotsForInstructor = useMemo(() => {
-    if (!instructorId) return [];
+    if (!instructorId) return {};
     const grouped = {};
     availability
-      .filter((s) => s.instructorId === instructorId)
+      .filter((s) => s.instructor_id === instructorId)
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
       .slice(0, 24)
       .forEach((s) => {
@@ -55,19 +56,28 @@ export default function BookLessonScreen({ route, navigation }) {
     setStep(step - 1);
   }
 
-  function confirmBooking() {
+  async function confirmBooking() {
     const slot = availability.find((s) => s.id === selectedSlotId);
     if (!slot || !lessonType || !instructor) return;
-    bookSlot(slot, lessonType, instructor);
-    Alert.alert(
-      'Lesson booked!',
-      `${lessonType.label} with ${instructor.name} on ${formatDate(slot.date)} at ${slot.time}.`,
-      [{ text: 'View my lessons', onPress: () => navigation.navigate('MyLessons') }]
-    );
-    setStep(0);
-    setInstructorId(null);
-    setLessonTypeId(null);
-    setSelectedSlotId(null);
+    setBooking(true);
+    try {
+      await bookSlot(slot, lessonType);
+      Alert.alert(
+        'Lesson booked!',
+        `${lessonType.label} with ${instructor.name} on ${formatDate(slot.date)} at ${slot.time}.`,
+        [{ text: 'View my lessons', onPress: () => navigation.navigate('MyLessons') }]
+      );
+      setStep(0);
+      setInstructorId(null);
+      setLessonTypeId(null);
+      setSelectedSlotId(null);
+    } catch (e) {
+      Alert.alert('Could not book this slot', e.message || 'Someone may have just booked it — try another time.');
+      setSelectedSlotId(null);
+      setStep(2);
+    } finally {
+      setBooking(false);
+    }
   }
 
   return (
@@ -96,10 +106,15 @@ export default function BookLessonScreen({ route, navigation }) {
           <>
             <Text style={type.bodyMuted}>Choose who you'd like to learn with.</Text>
             <View style={{ marginTop: spacing.md }}>
-              {INSTRUCTORS.map((i) => (
+              {instructors.map((i) => (
                 <InstructorCard
                   key={i.id}
-                  instructor={i}
+                  instructor={{
+                    ...i,
+                    title: i.name === 'Abas' ? 'Founder & Lead Instructor' : 'Instructor',
+                    years: i.years_experience,
+                    color: colorForInstructor(i.id),
+                  }}
                   selected={i.id === instructorId}
                   onPress={() => setInstructorId(i.id)}
                 />
@@ -112,7 +127,7 @@ export default function BookLessonScreen({ route, navigation }) {
           <>
             <Text style={type.bodyMuted}>What kind of lesson do you need?</Text>
             <View style={{ marginTop: spacing.md, gap: spacing.md }}>
-              {LESSON_TYPES.map((l) => {
+              {lessonTypes.map((l) => {
                 const selected = l.id === lessonTypeId;
                 return (
                   <Pressable
@@ -192,7 +207,7 @@ export default function BookLessonScreen({ route, navigation }) {
         {step < 3 ? (
           <PrimaryButton label="Continue" onPress={goNext} disabled={!canProceed[step]} />
         ) : (
-          <PrimaryButton label="Confirm booking" onPress={confirmBooking} />
+          <PrimaryButton label="Confirm booking" onPress={confirmBooking} loading={booking} />
         )}
       </View>
     </View>
