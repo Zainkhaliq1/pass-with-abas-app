@@ -2,6 +2,34 @@
 -- Run this once in your Supabase project's SQL Editor (Dashboard → SQL Editor → New query → paste → Run).
 -- Safe to re-run: uses IF NOT EXISTS / CREATE OR REPLACE throughout.
 
+-- ========== INSTRUCTORS ==========
+-- One row per instructor, linked 1:1 to a Supabase Auth user (created on sign-up in the instructor app,
+-- but you should only share the instructor app's sign-up with real staff).
+-- Created before PUPILS because the pupils policies below reference this table.
+create table if not exists public.instructors (
+  id uuid primary key references auth.users(id) on delete cascade,
+  name text not null,
+  car text,
+  transmission text[] not null default '{}', -- e.g. '{Manual}' or '{Automatic}'
+  years_experience int,
+  created_at timestamptz not null default now()
+);
+
+alter table public.instructors enable row level security;
+
+drop policy if exists "Anyone signed in can view instructors" on public.instructors;
+create policy "Anyone signed in can view instructors" on public.instructors
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "Instructors can update own profile" on public.instructors;
+create policy "Instructors can update own profile" on public.instructors
+  for update using (auth.uid() = id);
+
+drop policy if exists "Instructors can insert own profile" on public.instructors;
+create policy "Instructors can insert own profile" on public.instructors
+  for insert with check (auth.uid() = id);
+
+
 -- ========== PUPILS (students) ==========
 -- One row per pupil, linked 1:1 to a Supabase Auth user (created on sign-up in the student app).
 create table if not exists public.pupils (
@@ -30,33 +58,6 @@ create policy "Pupils can insert own profile" on public.pupils
 drop policy if exists "Instructors can view all pupils" on public.pupils;
 create policy "Instructors can view all pupils" on public.pupils
   for select using (exists (select 1 from public.instructors i where i.id = auth.uid()));
-
-
--- ========== INSTRUCTORS ==========
--- One row per instructor, linked 1:1 to a Supabase Auth user (created on sign-up in the instructor app,
--- but you should only share the instructor app's sign-up with real staff).
-create table if not exists public.instructors (
-  id uuid primary key references auth.users(id) on delete cascade,
-  name text not null,
-  car text,
-  transmission text[] not null default '{}', -- e.g. '{Manual}' or '{Automatic}'
-  years_experience int,
-  created_at timestamptz not null default now()
-);
-
-alter table public.instructors enable row level security;
-
-drop policy if exists "Anyone signed in can view instructors" on public.instructors;
-create policy "Anyone signed in can view instructors" on public.instructors
-  for select using (auth.role() = 'authenticated');
-
-drop policy if exists "Instructors can update own profile" on public.instructors;
-create policy "Instructors can update own profile" on public.instructors
-  for update using (auth.uid() = id);
-
-drop policy if exists "Instructors can insert own profile" on public.instructors;
-create policy "Instructors can insert own profile" on public.instructors
-  for insert with check (auth.uid() = id);
 
 
 -- ========== LESSON TYPES ==========
